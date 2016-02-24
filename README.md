@@ -3,6 +3,8 @@ iPad Mini 2 (retina) mkv, avi, flv converter
 
 This tool wraps ffmpeg binaries (osx and windows) into a self executing jar.
 
+[download latest release here](https://github.com/frankielc/ipadConverter/releases)
+
 * replaces symbols like ♪ from subtitles that break iOS native player
 * inserts srt subtitle into *.mp4 file
 * downmixes from 5.1 to stereo making sure vocals sound ok
