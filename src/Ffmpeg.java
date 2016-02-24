@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -160,7 +161,7 @@ public class Ffmpeg {
 
 
     private static void unpackFfmpeg() throws IOException {
-        // todo detect if this is being run from inside the jar
+        // detect if this is being run from inside the jar
         if(Converter.launchType.equals(LaunchType.JAR)) {
             String ffmpegStr = "";
             switch (Converter.osType) {
@@ -172,8 +173,8 @@ public class Ffmpeg {
                     break;
             }
 
-            // TODO unzip ffmpeg from inside the JAR
-            JarFile jarfile = new JarFile("ipadConverter.jar");
+            // unzip ffmpeg from inside the JAR
+            JarFile jarfile = new JarFile(System.getProperty("java.class.path"));
 
             Enumeration<JarEntry> entries = jarfile.entries();
             while(entries.hasMoreElements()) {
