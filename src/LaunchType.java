@@ -1,5 +1,5 @@
 /**
- * Created by fleited on 19/02/2016.
+ * Detects if we're launching from the terminal or from the self executing jar
  */
 public enum LaunchType {
     TERMINAL,

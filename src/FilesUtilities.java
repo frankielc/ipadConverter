@@ -1,24 +1,22 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by fleited on 19/02/2016.
- */
-public class FilesUtilities {
+class FilesUtilities {
 
     /**
-     * Returns a list of all files that can be converted in the current working directory
-     * @return
+     * Searches and returns a list of all files that can be 
+     * converted in the current working directory
+     * 
+     * @return list of all files that can be converted 
      */
-    public static List<File> listAllConvertableFilesInCwd() {
+    public static List<File> listAllConvertibleFilesInCwd() {
         File folder = new File( System.getProperty("user.dir") );
         File[] listOfFiles = folder.listFiles();
         List<File> files = new ArrayList<>();
 
-        for (int i = 0; i < listOfFiles.length; i++) {
+        for (int i = 0; i < (listOfFiles != null ? listOfFiles.length : 0); i++) {
             String match = ".*(?<!ac2)\\.mkv$|.*\\.avi$|.*\\.flv$"; // match every video except mkv with ac2 behind it
             if(listOfFiles[i].getName().matches(match)) {
                 files.add(listOfFiles[i]);
@@ -29,7 +27,7 @@ public class FilesUtilities {
 
 
     public static boolean doesEachFileHasSubtitle(List<File> files) throws IOException {
-        List<String> filesThatShouldExistButDont = new ArrayList<>();
+        List<String> filesThatShouldExistButDoNot = new ArrayList<>();
 
         for(File f : files) {
             System.out.println("File: " + f.toString());
@@ -43,15 +41,15 @@ public class FilesUtilities {
             System.out.println(tmpFile.getName() + " " + tmpFile.getTotalSpace()/1024 );
 
             if(!tmpFile.exists()||!tmpFile.getCanonicalFile().toString().equals(fileWithSrtExtension)) {
-                filesThatShouldExistButDont.add(tmpFile.toString());
+                filesThatShouldExistButDoNot.add(tmpFile.toString());
             }
         }
 
-        for(String s : filesThatShouldExistButDont) {
+        for(String s : filesThatShouldExistButDoNot) {
             System.out.println(s + " does NOT exist!");
             Log.appendToInfoArea(s + " does NOT exist!");
         }
-        return (filesThatShouldExistButDont.size()>0) ? false : true;
+        return filesThatShouldExistButDoNot.size() <= 0;
     }
 
 

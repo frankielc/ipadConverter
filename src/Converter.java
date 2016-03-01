@@ -1,11 +1,11 @@
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.SystemUtils;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
-public class Converter extends Task {
+class Converter extends Task {
 
     public static OSType osType;
     public static LaunchType launchType;
@@ -19,7 +19,7 @@ public class Converter extends Task {
 
 
 
-    public void convert() {
+    private void convert() {
         if(SystemUtils.IS_OS_MAC_OSX) {
             osType = OSType.OSX;
         } else if(SystemUtils.IS_OS_WINDOWS) {
@@ -34,16 +34,14 @@ public class Converter extends Task {
         launchType = LaunchType.getLaunchType(Converter.class.getResource("Converter.class").toString());
         Log.appendToInfoArea("running from: " + launchType);
 
-
-
         try {
             // get all files to convert
-            List<File> filesToConvert = FilesUtilities.listAllConvertableFilesInCwd();
+            List<File> filesToConvert = FilesUtilities.listAllConvertibleFilesInCwd();
 
-            // get all files as subtitles
+            // create a list of hypothetical subtitles
             List<String> subtitles = SubtitleUtilities.convertFileNameToSubtitlesNames(filesToConvert);
 
-            // check if each file has correct subtitle
+            // check if each video has a matching subtitle
             if(!FilesUtilities.doesEachFileHasSubtitle(filesToConvert)) {
                 Log.appendToInfoArea("exit as not every file had a subtitle");
                 return;
@@ -51,10 +49,10 @@ public class Converter extends Task {
 
             // fix each subtitles
             for(String f : subtitles) {
-                long weirdChars = SubtitleUtilities.replaceAllWeirdCharsFromFile(f);
+                Map.Entry<Integer, String> numReplacements = SubtitleUtilities.replaceAllWeirdCharsFromFile(f);
                 //Console.log("we did " + weirdChars + " replacements on " + f);
-                System.out.println("we did " + weirdChars + " replacements on " + f);
-                Log.appendToInfoArea("we did " + weirdChars + " replacements on " + f);
+                System.out.println("we did " + numReplacements.getKey() + " replacements on " + f + " (" + numReplacements.getValue() + ")");
+                Log.appendToInfoArea("we did " + numReplacements.getKey() + " replacements on " + f + " (" + numReplacements.getValue() + ")");
             }
 
             // if subtitles and files to convert don't match output error
@@ -64,19 +62,21 @@ public class Converter extends Task {
                 System.exit(-1);
             }
 
-            // sends files to ffmpeg for compression
+            // sends files to ffmpeg for compression with clean subtitle files
             try {
                 for(int i=0; i<filesToConvert.size(); i++) {
                     Log.appendToInfoArea("");
-                    Ffmpeg.compress(filesToConvert.get(i).toString(), subtitles.get(i));
+                    Ffmpeg.compress(filesToConvert.get(i).toString(), subtitles.get(i).substring(0, subtitles.get(i).length() - 4) + "_clean.srt");
                 }
             } catch (Exception e) {
+                Log.appendToInfoArea(e.toString());
                 e.printStackTrace();
             }
 
             Log.appendToInfoArea("\nall files converted");
 
         } catch (Exception e) {
+            Log.appendToInfoArea(e.toString());
             e.printStackTrace();
         }
 

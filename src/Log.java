@@ -1,7 +1,4 @@
-/**
- * Created by fleited on 23/02/2016.
- */
-public class Log {
+class Log {
     private static Window window;
 
     public Log(Window window) {

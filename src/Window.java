@@ -6,6 +6,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.nio.charset.Charset;
+
 
 /**
  *
@@ -15,11 +17,11 @@ public class Window extends Application {
     private final TextArea infoArea = new TextArea();
     private final TextArea realTimeArea = new TextArea();
 
-    protected void appendToInfoArea(String txt) {
+    void appendToInfoArea(String txt) {
         Platform.runLater(() -> infoArea.appendText("\n"+txt));
     }
 
-    protected void replaceRealTimeArea(final String txt) {
+    void replaceRealTimeArea(final String txt) {
         Platform.runLater(() -> realTimeArea.setText(txt));
     }
 
@@ -45,13 +47,14 @@ public class Window extends Application {
 
         infoArea.appendText("important log events will show here");
         realTimeArea.appendText("real time ffmpeg info will show here");
-
+        
         try {
             Task task = new Converter();
             Thread th = new Thread(task);
             th.setDaemon(true);
             th.start();
         } catch (Exception e) {
+            Log.appendToInfoArea(e.toString());
             e.printStackTrace();
         }
     }

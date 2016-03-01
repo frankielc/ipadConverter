@@ -3,24 +3,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Enumeration;
-import java.util.Properties;
 import java.util.Scanner;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
-public class Ffmpeg {
+class Ffmpeg {
 
 
 
 
-    public static boolean compress(String fileStr, String subtitleStr) throws IOException, InterruptedException {
+    public static void compress(String fileStr, String subtitleStr) throws IOException, InterruptedException {
         unpackFfmpeg(); // we extract ffmpeg to perform it's thing
 
         // convert file to stereo
@@ -30,27 +26,27 @@ public class Ffmpeg {
         BigDecimal decibel = getMaxVolume(fileStr.substring(0, fileStr.length()-4)+"_ac2.mkv");
 
         // compress to iPad with proper sound
-        compressWithMaxSound(fileStr, subtitleStr, decibel);
+        compressWithMaxSound(fileStr, subtitleStr, Preset.VERY_FAST, decibel);
 
         // this just serves to see if max volume is respected or not and can be cancelled in the future
-        getMaxVolume(fileStr.substring(0, fileStr.length()-4)+"_ios.mp4");
+        getMaxVolume(fileStr.substring(0, fileStr.length()-4)+"_ios_"+Preset.VERY_FAST+".mp4");
 
-        // cleanup temporary AC2 files
+        // cleanup temporary AC2 files and subtitles
         try {
             Files.delete(Paths.get(fileStr.substring(0, fileStr.length() - 4) + "_ac2.mkv"));
+            Files.delete(Paths.get(subtitleStr));
         } catch (IOException e) {
             Log.appendToInfoArea(fileStr.substring(0, fileStr.length() - 4) + "_ac2.mkv was not found to be deleted");
             e.printStackTrace();
         }
-
+        
         deleteFfmpeg(); // we clean up the no longer needed library
 
-        return true;
     }
 
 
-    private static boolean convertFileToStereo(String fileStr) throws IOException, InterruptedException {
-        Log.appendToInfoArea("downmixing " + printFileWithoutPath(fileStr) + " to stereo");
+    private static void convertFileToStereo(String fileStr) throws IOException, InterruptedException {
+        Log.appendToInfoArea("down mixing " + printFileWithoutPath(fileStr) + " to stereo");
 
         ProcessBuilder builder = new ProcessBuilder(
                 "ffmpeg",
@@ -76,7 +72,6 @@ public class Ffmpeg {
 
         System.out.printf("convertFileToStereo exited with result %d and output %s%n", result, output);
         Log.replaceRealTimeArea(String.format("convertFileToStereo exited with result %d and output %s%n", result, output));
-        return true;
     }
 
 
@@ -115,9 +110,9 @@ public class Ffmpeg {
     }
 
 
-    private static boolean compressWithMaxSound(String fileStr, String subtitleStr, BigDecimal maxSound) throws IOException, InterruptedException {
+    private static void compressWithMaxSound(String fileStr, String subtitleStr, Preset preset, BigDecimal maxSound) throws IOException, InterruptedException {
         String fileStrAC2 = fileStr.substring(0, fileStr.length()-4)+"_ac2.mkv";
-        Log.appendToInfoArea("compressWithMaxSound " + printFileWithoutPath(fileStr));
+        Log.appendToInfoArea("compressWithMaxSound (" + preset + ") " + printFileWithoutPath(fileStr));
 
         ProcessBuilder builder = new ProcessBuilder(
                 "ffmpeg",
@@ -141,9 +136,9 @@ public class Ffmpeg {
                 "-acodec", "aac",
                 "-strict", "experimental",
                 "-af", "volume=volume="+maxSound.abs().toPlainString()+"dB:precision=fixed",
-                "-preset", "veryfast",
+                "-preset", preset.toString(),
                 "-f", "mp4",
-                fileStr.substring(0, fileStr.length()-4)+"_ios.mp4");
+                fileStr.substring(0, fileStr.length()-4)+"_ios_" + preset + ".mp4");
         builder.directory( new File( "/" ).getAbsoluteFile() ); // this is where you set the root folder for the executable to run with
         builder.redirectErrorStream(true);
         //Log.appendToInfoArea(printCommand(builder));
@@ -156,7 +151,6 @@ public class Ffmpeg {
 
         System.out.printf("compressWithMaxSound exited with result %d and output %s%n", result, output);
         Log.replaceRealTimeArea(String.format("compressWithMaxSound exited with result %d and output %s%n", result, output));
-        return true;
     }
 
 
@@ -176,16 +170,16 @@ public class Ffmpeg {
             // unzip ffmpeg from inside the JAR
             JarFile jarfile = new JarFile(System.getProperty("java.class.path"));
 
-            Enumeration<JarEntry> entries = jarfile.entries();
-            while(entries.hasMoreElements()) {
-                JarEntry e = entries.nextElement();
-                System.out.println(e.getName() + " " + e.toString());
-            }
+            //Enumeration<JarEntry> entries = jarfile.entries();
+            //while(entries.hasMoreElements()) {
+            //    JarEntry e = entries.nextElement();
+            //    System.out.println(e.getName() + " " + e.toString());
+            //}
 
             System.out.println("will now try to capture " + ffmpegStr + " from jar file");
             ZipEntry ffmpeg = jarfile.getEntry(ffmpegStr);
             if(ffmpeg==null) {
-                System.out.println("could not extract " + ffmpegStr + " from jarfile - exit");
+                System.out.println("could not extract " + ffmpegStr + " from jar file - exit");
                 System.exit(-1);
             }
 
@@ -199,10 +193,10 @@ public class Ffmpeg {
         if(Converter.launchType.equals(LaunchType.TERMINAL)) {
             switch (Converter.osType) {
                 case WINDOWS:
-                    Files.copy(Paths.get("ffmpeg.exe"), Paths.get("ffmpeg.exe"), StandardCopyOption.REPLACE_EXISTING) ;
+                    Files.copy(Paths.get("lib/ffmpeg.exe"), Paths.get("ffmpeg.exe"), StandardCopyOption.REPLACE_EXISTING) ;
                     break;
                 case OSX:
-                    Files.copy(Paths.get("ffmpeg"), Paths.get("ffmpeg"), StandardCopyOption.REPLACE_EXISTING) ;
+                    Files.copy(Paths.get("lib/ffmpeg"), Paths.get("ffmpeg"), StandardCopyOption.REPLACE_EXISTING) ;
                     break;
             }
             return;
