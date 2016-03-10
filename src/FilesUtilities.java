@@ -17,7 +17,7 @@ class FilesUtilities {
         List<File> files = new ArrayList<>();
 
         for (int i = 0; i < (listOfFiles != null ? listOfFiles.length : 0); i++) {
-            String match = ".*(?<!ac2)\\.mkv$|.*\\.avi$|.*\\.flv$"; // match every video except mkv with ac2 behind it
+            String match = ".*(?<!ac2)\\.mkv$|.*\\.avi$|.*\\.flv$|.*\\.mp4$"; // match every video except mkv with ac2 behind it
             if(listOfFiles[i].getName().matches(match)) {
                 files.add(listOfFiles[i]);
             }
